@@ -11,12 +11,12 @@ PARAMETER Hours
     CRITICAL: Backup job failed.
 .EXAMPLE
 	.\check_wsb.ps1 -Hours 96
-.NOTES 
-	Author:	Juan Granados 
+.NOTES
+	Author:	Juan Granados
 	Date:	December 2017
 #>
-Param(	
-    [Parameter(Mandatory=$false,Position=0)] 
+Param(
+    [Parameter(Mandatory=$false,Position=0)]
 	[ValidateNotNullOrEmpty()]
 	[int]$Hours=48
 )
@@ -32,7 +32,7 @@ try{
     $BackupSummary = Get-WBSummary -ErrorAction Stop
 }catch{
     Write-Output "UNKNOWN: Could not get Windows Server Backup information. Try running in PowerShell console: Add-WindowsFeature -Name Backup-Tools | NumberOfVersions=0;;;;"
-    $host.SetShouldExit(3)
+    $returnCode=3
 }
 if ($BackupSummary){
     # Check last backup
@@ -44,25 +44,27 @@ if ($BackupSummary){
         # If last backup has been performed in time and its result is ok.
         If ( (($BackupSummary.LastSuccessfulBackupTime).Date -ge (get-date).AddHours(-$($Hours))) -and $BackupSummary.LastBackupResultHR -eq '0'){
             Write-Output "OK: last backup date $($BackupSummary.LastSuccessfulBackupTime). $($BackupSummary.NumberOfVersions) versions stored.$($PerfmonOutput)"
-            $host.SetShouldExit(0)
+            $returnCode=0
         }
         # If last backup has not been performed in time or its result is not ok.
         Else{
             if ($BackupSummary.DetailedMessage){
-                Write-Output "CRITICAL: Last backup result on error: $($BackupSummary.DetailedMessage) Last successful backup date: $($BackupSummary.LastSuccessfulBackupTime).$($PerfmonOutput)"            
+                Write-Output "CRITICAL: Last backup result on error: $($BackupSummary.DetailedMessage) Last successful backup date: $($BackupSummary.LastSuccessfulBackupTime).$($PerfmonOutput)"
             }
             else{
                 Write-Output "CRITICAL: Last backup result on unspecified error. Last successful backup date: $($BackupSummary.LastSuccessfulBackupTime).$($PerfmonOutput)"
             }
-            $host.SetShouldExit(2)
+            $returnCode=2
         }
     }
     else{
         Write-Output "CRITICAL: There is not any successful backup yet. | NumberOfVersions=0;;;;"
-        $host.SetShouldExit(2)
+        $returnCode=2
     }
 }
 else{
     Write-Output "UNKNOWN: Could not get Windows Server Backup information. | NumberOfVersions=0;;;;"
-    $host.SetShouldExit(3)
+    $returnCode=3
 }
+
+exit ($returnCode)
