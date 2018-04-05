@@ -67,7 +67,7 @@ $PerformanceOutput = " | SuccessJobs=$($SuccessJobs);;;; FailedJobs=$($FailedJob
 
 If ($ExitCode -eq 0){
     Write-Host "All last backups jobs within $($Hours) hours successful.$($PerformanceOutput)"
-    Exit
+    Exit 0
 }
 
 ElseIf ($ExitCode -eq 1){
