@@ -12,12 +12,12 @@
     CRITICAL: Backup job failed.
 .EXAMPLE
 	.\check_bejobs.ps1 -Hours 96
-.NOTES 
-	Author:	Juan Granados 
+.NOTES
+	Author:	Juan Granados
 	Date:	December 2017
 #>
-Param(	
-    [Parameter(Mandatory=$false,Position=0)] 
+Param(
+    [Parameter(Mandatory=$false,Position=0)]
 	[ValidateNotNullOrEmpty()]
 	[int]$Hours=48
 )
@@ -60,21 +60,21 @@ ForEach ($Job in $Jobs){
         continue
     }
     $Output += "$($Job.Name) exited with status $($Job.JobStatus) at $($Job.EndTime)."
-    
+
 }
 
 $PerformanceOutput = " | SuccessJobs=$($SuccessJobs);;;; FailedJobs=$($FailedJobs);1;1;; BackupSize=$([math]::round($TotalDataSizeBytes/1GB,3))GB;;;;"
 
 If ($ExitCode -eq 0){
     Write-Host "All last backups jobs within $($Hours) hours successful.$($PerformanceOutput)"
-    $host.SetShouldExit(0)
+    Exit
 }
 
 ElseIf ($ExitCode -eq 1){
     Write-Host "WARNING: $($Output)$($PerformanceOutput)"
-    $host.SetShouldExit(1)
+    Exit 1
 }
 Else{
 	Write-Host "CRITICAL: $($Output)$($PerformanceOutput)"
-	$host.SetShouldExit(2)
+	Exit 2
 }
